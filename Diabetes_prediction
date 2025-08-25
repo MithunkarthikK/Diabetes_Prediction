@@ -1,0 +1,64 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+# Load dataset
+df = pd.read_csv('dia.csv')  # Change path if needed
+
+# Data overview
+print("Dataset shape:", df.shape)
+print(df.head())
+print(df.info())
+
+# Check target distribution
+print("Outcome value counts:\n", df['Outcome'].value_counts())
+
+# Visualization - Outcome count
+sns.countplot(x='Outcome', data=df)
+plt.title('Diabetes Outcome Count')
+plt.show()
+
+# Pairplot to visualize feature relationships by outcome
+sns.pairplot(df, hue='Outcome', diag_kind='kde')
+plt.show()
+
+# Heatmap for correlation matrix
+plt.figure(figsize=(10, 8))
+sns.heatmap(df.corr(), annot=True, cmap='coolwarm', fmt=".2f")
+plt.title('Feature Correlation')
+plt.show()
+
+# Prepare features and target
+X = df.drop('Outcome', axis=1)
+y = df['Outcome']
+
+# Split data for training and testing
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y)
+
+# Initialize and train model
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# Predictions on test set
+y_pred = model.predict(X_test)
+
+# Evaluation metrics
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+# Feature importance visualization
+feat_importances = pd.Series(model.feature_importances_, index=X.columns)
+feat_importances = feat_importances.sort_values()
+plt.figure(figsize=(8, 5))
+feat_importances.plot(kind='barh', color='teal')
+plt.title('Feature Importance')
+plt.xlabel('Importance Score')
+plt.ylabel('Features')
+plt.show()
